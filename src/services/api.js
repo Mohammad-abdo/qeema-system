@@ -3,7 +3,7 @@ import axios from "axios";
 const baseURL =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_PROJECTS_BACKEND_URL ||
-  (import.meta.env.DEV ? "http://127.0.0.1:4000" : "");
+  (import.meta.env.DEV ? "http://127.0.0.1:4000" : "https://api.qeemasupport.site");
 
 export const api = axios.create({
   baseURL: baseURL ? `${baseURL.replace(/\/$/, "")}` : window.location.origin,
