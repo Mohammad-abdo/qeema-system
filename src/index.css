@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Qeematech identity: vibrant blue from logo, clean contrast */
+:root {
+  --radius: 0.625rem;
+  /* Subtle blue tint for cohesive identity */
+  --background: 214 30% 99%;
+  --foreground: 220 18% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 18% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 18% 12%;
+  /* Primary: Qeematech blue (vibrant blue from logo) */
+  --primary: 214 100% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 35% 94%;
+  --secondary-foreground: 214 65% 22%;
+  --muted: 214 28% 95%;
+  --muted-foreground: 214 18% 42%;
+  --accent: 214 40% 93%;
+  --accent-foreground: 214 90% 28%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 214 25% 88%;
+  --input: 214 25% 88%;
+  --ring: 214 100% 42%;
+}
+
+.dark {
+  --background: 220 18% 9%;
+  --foreground: 214 20% 98%;
+  --card: 220 18% 11%;
+  --card-foreground: 214 20% 98%;
+  --popover: 220 18% 11%;
+  --popover-foreground: 214 20% 98%;
+  /* Primary: slightly lighter blue for dark mode (readable on dark) */
+  --primary: 214 85% 55%;
+  --primary-foreground: 220 30% 8%;
+  --secondary: 214 25% 18%;
+  --secondary-foreground: 214 20% 98%;
+  --muted: 214 20% 16%;
+  --muted-foreground: 214 15% 64%;
+  --accent: 214 35% 20%;
+  --accent-foreground: 214 80% 75%;
+  --destructive: 0 63% 31%;
+  --border: 214 20% 18%;
+  --input: 214 20% 18%;
+  --ring: 214 85% 55%;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+[dir="rtl"] body {
+  font-family: "Alexandria", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
