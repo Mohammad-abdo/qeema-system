@@ -3,13 +3,13 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const statusColors = {
-  active: "bg-green-500/10 text-green-500 border-green-500/20",
-  on_hold: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
-  completed: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  archived: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-};
+import {
+  PROJECT_STATUS_COLORS,
+  getTaskStatusDisplay,
+  getTaskStatusColor,
+  getAssigneeColor,
+  PRIORITY_COLORS,
+} from "@/lib/statusColors";
 
 export function ProjectTaskCard({ project }) {
   const todayTasks = project?.todayTasks ?? [];
@@ -23,7 +23,7 @@ export function ProjectTaskCard({ project }) {
               {project?.name}
             </Link>
             {project?.status && (
-              <Badge variant="outline" className={cn("text-xs", statusColors[project.status] || "")}>
+              <Badge variant="outline" className={cn("text-xs", PROJECT_STATUS_COLORS[project.status] || "bg-muted text-muted-foreground border-border")}>
                 {(project.status || "").replace("_", " ")}
               </Badge>
             )}
@@ -41,7 +41,7 @@ export function ProjectTaskCard({ project }) {
                 key={task.id}
                 className={cn(
                   "p-3 border-l-4",
-                  task.isBlocked && "border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20"
+                  task.isBlocked && "border-l-chart-4 bg-chart-4/10 dark:bg-chart-4/20"
                 )}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -53,25 +53,41 @@ export function ProjectTaskCard({ project }) {
                       >
                         {task.title}
                       </Link>
-                      <Badge variant="outline" className={cn("text-xs", statusColors[task.status] || "")}>
-                        {(task.status || "").replace("_", " ")}
+                      <Badge variant="outline" className={cn("text-xs", getTaskStatusColor(task))}>
+                        {getTaskStatusDisplay(task).replace(/_/g, " ")}
                       </Badge>
+                      {task.priority && (
+                        <Badge
+                          variant="outline"
+                          className={cn("text-xs", PRIORITY_COLORS[task.priority] || "bg-muted text-muted-foreground border-border")}
+                        >
+                          {task.priority}
+                        </Badge>
+                      )}
                       {task.isBlocked && (
-                        <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 bg-orange-50">
+                        <Badge variant="outline" className="text-xs border-chart-4 text-chart-4 bg-chart-4/10">
                           <AlertTriangle className="h-3 w-3 me-1" />
                           Blocked
                         </Badge>
                       )}
                     </div>
                     {task.assignees?.length > 0 && (
-                      <div className="text-xs text-muted-foreground">
-                        Assigned to: {task.assignees.map((a) => a.username).join(", ")}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {task.assignees.map((a) => (
+                          <Badge
+                            key={a.id}
+                            variant="outline"
+                            className={cn("text-xs", getAssigneeColor(a))}
+                          >
+                            {a.username || a.email || "?"}
+                          </Badge>
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
                 {task.isBlocked && task.blockingDependencies?.length > 0 && (
-                  <div className="mt-2 text-xs text-orange-600 dark:text-orange-400">
+                  <div className="mt-2 text-xs text-chart-4">
                     <p className="font-medium">Blocked by:</p>
                     <ul className="list-disc list-inside mt-1">
                       {task.blockingDependencies.map((dep) => (

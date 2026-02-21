@@ -47,9 +47,9 @@ function SheetContent({ side = "right", className, children }) {
       />
       <div
         className={cn(
-          "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out w-3/4 max-w-md border-l",
+          "fixed z-50 flex flex-col gap-4 bg-background p-6 w-3/4 max-w-md border-border shadow-dropdown dark:shadow-dropdown-dark transition-[transform,opacity] duration-200 ease-in-out",
           side === "left" && "left-0 top-0 h-full border-r",
-          side === "right" && "right-0 top-0 h-full",
+          side === "right" && "right-0 top-0 h-full border-l",
           className
         )}
       >

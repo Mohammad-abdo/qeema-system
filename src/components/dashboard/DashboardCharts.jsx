@@ -13,15 +13,13 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
+/* System V2: chart-1..5 only (OKLCH) */
 const CHART_COLORS = [
-  "hsl(220 70% 50%)",
-  "hsl(160 60% 45%)",
-  "hsl(35 90% 55%)",
-  "hsl(280 65% 55%)",
-  "hsl(190 75% 45%)",
-  "hsl(10 75% 55%)",
-  "hsl(45 85% 60%)",
-  "hsl(260 60% 60%)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
 export function TasksByStatusChart({ taskStatuses = [], taskStatusCounts = {} }) {
@@ -36,7 +34,7 @@ export function TasksByStatusChart({ taskStatuses = [], taskStatusCounts = {} })
 
   if (data.length === 0) {
     return (
-      <Card className="overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+      <Card className="overflow-hidden border border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold">{t("dashboard.tasksByStatus")}</CardTitle>
         </CardHeader>
@@ -48,7 +46,7 @@ export function TasksByStatusChart({ taskStatuses = [], taskStatusCounts = {} })
   }
 
   return (
-    <Card className="overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+    <Card className="overflow-hidden border border-border">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">{t("dashboard.tasksByStatus")}</CardTitle>
         <p className="text-xs text-muted-foreground">{t("dashboard.taskStatuses")}</p>
@@ -73,7 +71,7 @@ export function TasksByStatusChart({ taskStatuses = [], taskStatusCounts = {} })
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                contentStyle={{ borderRadius: "var(--radius)", border: "1px solid var(--border)" }}
                 formatter={(value) => [value, t("common.status")]}
               />
             </PieChart>
@@ -102,7 +100,7 @@ export function ProjectsByStatusChart({ projectStatuses = [], projectStatusCount
 
   if (data.length === 0) {
     return (
-      <Card className="overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+      <Card className="overflow-hidden border border-border">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold">{t("dashboard.projectsByStatus")}</CardTitle>
         </CardHeader>
@@ -114,7 +112,7 @@ export function ProjectsByStatusChart({ projectStatuses = [], projectStatusCount
   }
 
   return (
-    <Card className="overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+    <Card className="overflow-hidden border border-border">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold">{t("dashboard.projectsByStatus")}</CardTitle>
         <p className="text-xs text-muted-foreground">{t("dashboard.totalProjects")}</p>
@@ -126,10 +124,10 @@ export function ProjectsByStatusChart({ projectStatuses = [], projectStatusCount
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
               <Tooltip
-                contentStyle={{ borderRadius: "8px", border: "1px solid hsl(var(--border))" }}
+                contentStyle={{ borderRadius: "var(--radius)", border: "1px solid var(--border)" }}
                 formatter={(value) => [value, t("dashboard.totalProjects")]}
               />
-              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} name={t("dashboard.totalProjects")} />
+              <Bar dataKey="count" fill="var(--chart-1)" radius={[0, 4, 4, 0]} name={t("dashboard.totalProjects")} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -149,12 +147,12 @@ export function OverviewProgressCard({ summary }) {
   const myShare = total > 0 ? Math.round((myTasks / total) * 100) : 0;
 
   return (
-    <Card className="overflow-hidden border-0 bg-card/80 backdrop-blur-sm shadow-sm">
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden border border-border py-8">
+      <CardHeader className="pb-2 px-8">
         <CardTitle className="text-base font-semibold">{t("dashboard.overview")}</CardTitle>
         <p className="text-xs text-muted-foreground">{t("dashboard.overviewSubtitle")}</p>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-8">
         <div>
           <div className="flex justify-between text-xs mb-1">
             <span className="text-muted-foreground">{t("dashboard.todayProgress")}</span>

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { format } from "date-fns";
 
 const LIMIT_OPTIONS = [25, 50, 100];
@@ -98,7 +99,7 @@ export default function ActivityLogsPage() {
       <div className="flex items-center gap-2">
         <Activity className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("activityLogs.title")}</h1>
+          <h1 className="page-title">{t("activityLogs.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("activityLogs.subtitle")}</p>
         </div>
       </div>
@@ -239,9 +240,11 @@ export default function ActivityLogsPage() {
                 </Table>
               </div>
               {!loading && logs.length === 0 && (
-                <div className="p-12 text-center text-muted-foreground">
-                  {t("activityLogs.noLogs")}
-                </div>
+                <EmptyState
+                  icon={Activity}
+                  title={t("activityLogs.noLogs")}
+                  description={t("activityLogs.noLogsHint", "Activity will appear here as actions occur.")}
+                />
               )}
               {total > 0 && (
                 <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 px-4 py-3 bg-muted/20">

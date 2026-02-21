@@ -72,7 +72,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center mb-2">
@@ -102,8 +102,8 @@ function LoginForm() {
               )}
               {backendStatus === "connected" && (
                 <>
-                  <Wifi className="h-4 w-4 text-green-600" />
-                  <span className="text-green-700">{t("auth.backendConnected")}</span>
+                  <Wifi className="h-4 w-4 text-chart-2" />
+                  <span className="text-chart-2">{t("auth.backendConnected")}</span>
                   {backendUrl && (
                     <span className="text-muted-foreground truncate" title={backendUrl}>
                       ({backendUrl})
@@ -113,14 +113,14 @@ function LoginForm() {
               )}
               {backendStatus === "disconnected" && (
                 <>
-                  <WifiOff className="h-4 w-4 text-amber-600" />
-                  <span className="text-amber-700">{t("auth.backendDisconnected")}</span>
+                  <WifiOff className="h-4 w-4 text-chart-4" />
+                  <span className="text-chart-4">{t("auth.backendDisconnected")}</span>
                 </>
               )}
             </div>
 
             {registered && (
-              <Alert className="border-green-500 bg-green-50 text-green-700">
+              <Alert className="border-chart-2 bg-chart-2/10 text-chart-2">
                 <CheckCircle2 className="h-4 w-4" />
                 <AlertTitle>{t("auth.success")}</AlertTitle>
                 <AlertDescription>{t("auth.accountCreated")}</AlertDescription>
@@ -169,7 +169,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-background">
           <Card className="w-full max-w-md">
             <CardContent className="pt-6">
               <div className="flex items-center justify-center">

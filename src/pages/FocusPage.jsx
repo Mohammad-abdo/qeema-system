@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { FocusSummary } from "@/components/focus/FocusSummary";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 
 function DataColumn({ id, tasks, isPlaceholder }) {
   return (
@@ -164,11 +165,7 @@ export default function FocusPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ContentSkeleton className="space-y-6" />;
   }
 
   if (error) {
@@ -184,12 +181,12 @@ export default function FocusPage() {
     <div className="h-full flex flex-col space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("dashboard.focusTitle")}</h1>
+          <h1 className="page-title">{t("dashboard.focusTitle")}</h1>
           <p className="text-muted-foreground mt-1">{t("dashboard.focusSubtitle")}</p>
         </div>
       </div>
 
-      <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-center text-blue-600 dark:text-blue-300 font-medium">
+      <div className="p-4 bg-chart-1/10 dark:bg-chart-1/20 rounded-lg text-center text-chart-1 font-medium">
         Let&apos;s make today count!
       </div>
 
@@ -212,7 +209,7 @@ export default function FocusPage() {
           <div className="flex flex-col h-full bg-gradient-to-b from-blue-50/50 to-white dark:from-slate-900/50 dark:to-background rounded-xl border border-blue-200 dark:border-blue-900/30 shadow-md overflow-hidden">
             <div className="p-4 border-b border-blue-100 dark:border-blue-900/30 flex-shrink-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                <h3 className="font-semibold flex items-center gap-2 text-chart-1">
                   <Target className="h-4 w-4" /> Today&apos;s Focus Board
                 </h3>
                 {focusTasks.length > 0 && (
@@ -221,7 +218,7 @@ export default function FocusPage() {
                     size="sm"
                     onClick={onClearFocus}
                     disabled={pending}
-                    className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                    className="h-8 px-2 text-chart-1 hover:text-chart-1 hover:bg-chart-1/15 dark:hover:bg-chart-1/25"
                   >
                     <Trash2 className="h-4 w-4 me-1" /> Clear
                   </Button>

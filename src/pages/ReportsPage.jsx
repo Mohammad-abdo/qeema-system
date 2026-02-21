@@ -101,7 +101,7 @@ export default function ReportsPage() {
       <div className="flex items-center gap-2">
         <BarChart3 className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("reports.title")}</h1>
+          <h1 className="page-title">{t("reports.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("reports.subtitle")}</p>
         </div>
       </div>

@@ -22,6 +22,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 import {
   Table,
   TableBody,
@@ -84,11 +85,7 @@ export default function UserDetailPage() {
   const progressPct = taskTotal > 0 ? Math.round((taskCompleted / taskTotal) * 100) : 0;
 
   if (loading && !user) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ContentSkeleton className="space-y-6" />;
   }
   if (!user) {
     return (
@@ -112,7 +109,7 @@ export default function UserDetailPage() {
         </Link>
         <Avatar name={user.username} />
         <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold tracking-tight">{user.username}</h1>
+          <h1 className="page-title">{user.username}</h1>
           <p className="text-muted-foreground mt-1">{user.email}</p>
           <div className="flex flex-wrap gap-2 mt-3">
             <Badge variant="outline" className="capitalize">

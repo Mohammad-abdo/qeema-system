@@ -5,6 +5,7 @@ import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { error as notifyError } from "@/utils/notify";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 
 export default function ReportsProgressPage() {
   const { user } = useAuth();
@@ -36,7 +37,7 @@ export default function ReportsProgressPage() {
       <div className="flex items-center gap-2">
         <TrendingUp className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Progress Report</h1>
+          <h1 className="page-title">Progress Report</h1>
           <p className="text-muted-foreground mt-1">
             Task and project progress overview
           </p>
@@ -44,9 +45,7 @@ export default function ReportsProgressPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <ContentSkeleton className="space-y-6" />
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           <Card>

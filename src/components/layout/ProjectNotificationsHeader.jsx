@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Bell, Loader2, CheckCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -8,7 +9,7 @@ import { success as notifySuccess, error as notifyError } from "@/utils/notify";
 import { playNotificationSound } from "@/utils/notificationSound";
 import { format } from "date-fns";
 
-const POLL_INTERVAL_MS = 60 * 1000; // 1 minute
+const POLL_INTERVAL_MS = 10 * 1000; // 10 seconds for near-live notification sound
 
 export function ProjectNotificationsHeader() {
   const { t } = useTranslation();
@@ -16,13 +17,19 @@ export function ProjectNotificationsHeader() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const prevUnreadCountRef = useRef(null);
 
   const fetchUnreadCount = useCallback(() => {
     api
       .get("/api/v1/notifications/unread-count")
       .then((res) => {
         const n = res.data?.count ?? res.data?.data?.count ?? 0;
-        setUnreadCount(Number(n));
+        const num = Number(n);
+        if (prevUnreadCountRef.current !== null && num > prevUnreadCountRef.current) {
+          playNotificationSound();
+        }
+        prevUnreadCountRef.current = num;
+        setUnreadCount(num);
       })
       .catch(() => setUnreadCount(0));
   }, []);
@@ -87,14 +94,15 @@ export function ProjectNotificationsHeader() {
         onClick={togglePanel}
       >
         <Bell className="h-4 w-4" />
-        {unreadCount > 0 && (
-          <Badge
-            variant="destructive"
-            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-xs"
-          >
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </Badge>
-        )}
+        <span
+          className={`absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-medium tabular-nums ${
+            unreadCount > 0 ? "bg-destructive text-destructive-foreground" : "bg-muted text-muted-foreground"
+          }`}
+          aria-live="polite"
+          aria-label={t("notifications.unreadCount", { count: unreadCount })}
+        >
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
       </Button>
       {panelOpen && (
         <div
@@ -123,32 +131,46 @@ export function ProjectNotificationsHeader() {
               <p className="text-center text-muted-foreground text-sm py-8">{t("notifications.noNotifications")}</p>
             ) : (
               <ul className="space-y-1">
-                {notifications.map((n) => (
-                  <li
-                    key={n.id}
-                    className={`rounded-lg border p-3 transition-colors ${!n.isRead ? "bg-primary/5 border-primary/20" : "bg-card"}`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm">{n.title || "—"}</p>
-                        {n.message && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>}
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {n.createdAt ? format(new Date(n.createdAt), "MMM d, HH:mm") : ""}
-                        </p>
-                      </div>
-                      {!n.isRead && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="shrink-0 text-xs"
-                          onClick={() => handleMarkAsRead(n.id)}
-                        >
-                          {t("notifications.markRead")}
-                        </Button>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                {notifications.map((n) => {
+                  const href = n.linkUrl || "/dashboard/tasks";
+                  return (
+                    <li
+                      key={n.id}
+                      className={`rounded-lg border p-3 transition-colors ${!n.isRead ? "bg-primary/5 border-primary/20" : "bg-card"}`}
+                    >
+                      <Link
+                        to={href}
+                        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md -m-1 p-1"
+                        onClick={() => setPanelOpen(false)}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm">{n.title || "—"}</p>
+                            {n.message && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {n.createdAt ? format(new Date(n.createdAt), "MMM d, HH:mm") : ""}
+                            </p>
+                          </div>
+                          {!n.isRead && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="shrink-0 text-xs"
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleMarkAsRead(n.id);
+                              }}
+                            >
+                              {t("notifications.markRead")}
+                            </Button>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

@@ -23,8 +23,8 @@ export function UserTaskCard({ user, todayTasksCount, totalTasksCount, onEditCli
           <div className="flex items-center gap-3">
             <div
               className={cn(
-                "h-12 w-12 rounded-full flex items-center justify-center text-white font-medium",
-                "bg-blue-500"
+                "h-12 w-12 rounded-full flex items-center justify-center text-primary-foreground font-medium",
+                "bg-primary"
               )}
             >
               {initials}
@@ -36,7 +36,7 @@ export function UserTaskCard({ user, todayTasksCount, totalTasksCount, onEditCli
               </Badge>
             </div>
           </div>
-          <Button onClick={onEditClick} className="bg-purple-600 hover:bg-purple-700 text-white" size="sm">
+          <Button onClick={onEditClick} variant="default" size="sm">
             <Edit className="h-4 w-4 me-1" />
             Edit Today
           </Button>

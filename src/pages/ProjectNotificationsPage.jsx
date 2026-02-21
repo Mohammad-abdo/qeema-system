@@ -10,21 +10,22 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 
 const LIMIT = 20;
 
 function getTypeColor(type) {
   switch (type) {
     case "task":
-      return "bg-blue-100 text-blue-800 border-blue-200";
+      return "bg-chart-1/15 text-chart-1 border-chart-1/20";
     case "dependency":
-      return "bg-orange-100 text-orange-800 border-orange-200";
+      return "bg-chart-4/15 text-chart-4 border-chart-4/20";
     case "today_task":
-      return "bg-green-100 text-green-800 border-green-200";
+      return "bg-chart-2/15 text-chart-2 border-chart-2/20";
     case "project_admin":
-      return "bg-purple-100 text-purple-800 border-purple-200";
+      return "bg-chart-1/15 text-chart-1 border-chart-1/20";
     default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
+      return "bg-muted text-muted-foreground border-border";
   }
 }
 
@@ -131,11 +132,7 @@ export default function ProjectNotificationsPage() {
   const totalPages = Math.ceil(total / LIMIT) || 1;
 
   if (loading && !project) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    );
+    return <ContentSkeleton className="container mx-auto py-6" />;
   }
 
   if (!project && !loading) {
@@ -165,7 +162,7 @@ export default function ProjectNotificationsPage() {
             {t("projects.backToProject")}
           </Link>
         </div>
-        <h1 className="text-3xl font-bold mt-4 flex items-center gap-2">
+        <h1 className="page-title mt-4 flex items-center gap-2">
           <Bell className="h-8 w-8" />
           {t("projects.projectNotifications")}
         </h1>
@@ -186,7 +183,7 @@ export default function ProjectNotificationsPage() {
               <div>
                 <Label className="text-sm font-medium mb-2 block">{t("notifications.type")}</Label>
                 <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
                   value={filters.type}
                   onChange={(e) => {
                     setFilters((f) => ({ ...f, type: e.target.value }));
@@ -203,7 +200,7 @@ export default function ProjectNotificationsPage() {
               <div>
                 <Label className="text-sm font-medium mb-2 block">{t("notifications.status")}</Label>
                 <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
                   value={filters.isRead}
                   onChange={(e) => {
                     setFilters((f) => ({ ...f, isRead: e.target.value }));
@@ -258,7 +255,7 @@ export default function ProjectNotificationsPage() {
                   <div
                     key={notification.id}
                     className={`p-4 border rounded-lg hover:bg-muted/50 transition-colors ${
-                      !notification.isRead ? "bg-blue-50/50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800" : ""
+                      !notification.isRead ? "bg-chart-1/10 border-chart-1/20 dark:bg-chart-1/20 dark:border-chart-1/30" : ""
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -268,7 +265,7 @@ export default function ProjectNotificationsPage() {
                             {notification.type}
                           </Badge>
                           {!notification.isRead && (
-                            <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                            <div className="h-2 w-2 rounded-full bg-chart-1 shrink-0" />
                           )}
                           {notification.soundRequired && (
                             <Badge variant="destructive" className="text-xs">

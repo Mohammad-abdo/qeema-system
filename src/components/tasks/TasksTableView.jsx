@@ -14,20 +14,11 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ArrowUpDown, ArrowUp, ArrowDown, Lock, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const STATUS_COLORS = {
-  pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-  in_progress: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  review: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  completed: "bg-green-500/10 text-green-600 border-green-500/20",
-  waiting: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-};
-const PRIORITY_COLORS = {
-  urgent: "bg-red-500/10 text-red-600 border-red-500/20",
-  high: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  normal: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  low: "bg-gray-500/10 text-gray-600 border-gray-500/20",
-};
+import {
+  PRIORITY_COLORS,
+  getTaskStatusDisplay,
+  getTaskStatusColor,
+} from "@/lib/statusColors";
 
 const priorityOrder = { urgent: 4, high: 3, normal: 2, low: 1 };
 
@@ -165,7 +156,7 @@ export function TasksTableView({ tasks, total, page, limit, onPageChange }) {
                 <TableRow key={task.id}>
                   <TableCell>
                     <Link to={taskLink} className="font-medium hover:underline flex items-center gap-1">
-                      {blocked && <Lock className="h-3 w-3 text-orange-500 shrink-0" />}
+                      {blocked && <Lock className="h-3 w-3 text-chart-4 shrink-0" />}
                       {task.title}
                     </Link>
                   </TableCell>
@@ -179,24 +170,24 @@ export function TasksTableView({ tasks, total, page, limit, onPageChange }) {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge className={cn("text-xs", STATUS_COLORS[task.status] || "bg-gray-500/10")}>
-                      {(task.taskStatus?.name || task.status || "").replace("_", " ")}
+                    <Badge variant="outline" className={cn("text-xs", getTaskStatusColor(task))}>
+                      {getTaskStatusDisplay(task).replace(/_/g, " ")}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={cn("text-xs", PRIORITY_COLORS[task.priority] || "")}>
+                    <Badge variant="outline" className={cn("text-xs", PRIORITY_COLORS[task.priority] || "bg-muted text-muted-foreground border-border")}>
                       {task.priority || "normal"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     {task.dueDate ? (
-                      <span className={cn(overdue && "text-red-600 font-medium")}>
+                      <span className={cn(overdue && "text-destructive font-medium")}>
                         {format(new Date(task.dueDate), "MMM d, yyyy")}
                       </span>
                     ) : (
                       "—"
                     )}
-                    {overdue && <AlertCircle className="h-3 w-3 inline-block ms-1 text-red-600" />}
+                    {overdue && <AlertCircle className="h-3 w-3 inline-block ms-1 text-destructive" />}
                   </TableCell>
                   <TableCell>
                     {task.assignees?.length > 0

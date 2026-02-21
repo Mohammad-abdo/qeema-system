@@ -21,7 +21,10 @@ import { Label } from "@/components/ui/Label";
 import { Sheet, SheetTrigger, SheetContent, useSheet } from "@/components/ui/Sheet";
 import { ProjectsViewSwitcher } from "@/components/projects/ProjectsViewSwitcher";
 import { ProjectsTableView } from "@/components/projects/ProjectsTableView";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { CardListSkeleton } from "@/components/ui/CardListSkeleton";
 import { cn } from "@/lib/utils";
+import { PROJECT_STATUS_COLORS, getProjectTypeColor } from "@/lib/statusColors";
 
 function CreateProjectFormInner({ onSubmit, projectTypes }) {
   const { t } = useTranslation();
@@ -51,7 +54,7 @@ function CreateProjectFormInner({ onSubmit, projectTypes }) {
             id="project-desc"
             name="description"
             placeholder={t("projects.description")}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+            className="flex min-h-[80px] w-full rounded-[var(--radius)] border border-input bg-transparent px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
             rows={3}
           />
         </div>
@@ -60,7 +63,7 @@ function CreateProjectFormInner({ onSubmit, projectTypes }) {
           <select
             id="project-type"
             name="projectTypeId"
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+            className="flex h-9 w-full rounded-[var(--radius)] border border-input bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
           >
             <option value="">—</option>
             {projectTypes.map((type) => (
@@ -167,7 +170,7 @@ export default function ProjectsPage() {
     api.get("/api/v1/stats/projects").then((res) => {
       const d = res.data?.data ?? res.data;
       if (d) setStats({ total: d.total ?? 0, active: d.active ?? 0, completed: d.completed ?? 0, urgent: d.urgent ?? 0 });
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -225,7 +228,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("projects.title")}</h1>
+          <h1 className="page-title">{t("projects.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("projects.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -244,14 +247,14 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — borders over shadows (System V2) */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <button
           type="button"
           onClick={() => { setStatusFilter([]); setPriorityFilter([]); setCategoryFilter([]); setProjectManagerFilter("all"); setSearchQuery(""); setDateRange({}); setPage(1); }}
-          className="text-left"
+          className="text-left transition-[border-color] duration-200"
         >
-          <Card className={cn(statusFilter.length === 0 && priorityFilter.length === 0 && categoryFilter.length === 0 && "ring-2 ring-primary/20")}>
+          <Card className={cn("h-full", statusFilter.length === 0 && priorityFilter.length === 0 && categoryFilter.length === 0 && "border-2 border-primary")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("projects.total")}</CardTitle>
               <Folder className="h-4 w-4 text-muted-foreground" />
@@ -264,9 +267,9 @@ export default function ProjectsPage() {
         <button
           type="button"
           onClick={() => { setStatusFilter(["active"]); setPriorityFilter([]); setPage(1); }}
-          className="text-left"
+          className="text-left transition-[border-color] duration-200"
         >
-          <Card className={cn(statusFilter.includes("active") && statusFilter.length === 1 && "ring-2 ring-primary/20")}>
+          <Card className={cn("h-full", statusFilter.includes("active") && statusFilter.length === 1 && "border-2 border-primary")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("projects.active")}</CardTitle>
               <PlayCircle className="h-4 w-4 text-muted-foreground" />
@@ -279,9 +282,9 @@ export default function ProjectsPage() {
         <button
           type="button"
           onClick={() => { setStatusFilter(["completed"]); setPriorityFilter([]); setPage(1); }}
-          className="text-left"
+          className="text-left transition-[border-color] duration-200"
         >
-          <Card className={cn(statusFilter.includes("completed") && "ring-2 ring-primary/20")}>
+          <Card className={cn("h-full", statusFilter.includes("completed") && "border-2 border-primary")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("projects.completed")}</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
@@ -294,12 +297,12 @@ export default function ProjectsPage() {
         <button
           type="button"
           onClick={() => { setPriorityFilter(["urgent"]); setStatusFilter([]); setPage(1); }}
-          className="text-left"
+          className="text-left transition-[border-color] duration-200"
         >
-          <Card className={cn(priorityFilter.includes("urgent") && "ring-2 ring-primary/20")}>
+          <Card className={cn("h-full", priorityFilter.includes("urgent") && "border-2 border-primary")}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t("projects.urgent")}</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.urgent}</div>
@@ -331,11 +334,11 @@ export default function ProjectsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-card p-4">
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="space-y-2">
-          <Label className="text-xs">{t("projects.category")}</Label>
+          <Label className="text-sm font-medium">{t("projects.category")}</Label>
           <select
-            className="flex h-9 w-[160px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 w-[160px] rounded-[var(--radius)] border border-input bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
             value={categoryFilter[0] || ""}
             onChange={(e) => { setCategoryFilter(e.target.value ? [e.target.value] : []); setPage(1); }}
           >
@@ -346,9 +349,9 @@ export default function ProjectsPage() {
           </select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">{t("common.status")}</Label>
+          <Label className="text-sm font-medium">{t("common.status")}</Label>
           <select
-            className="flex h-9 w-[140px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 w-[140px] rounded-[var(--radius)] border border-input bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
             value={statusFilter[0] || ""}
             onChange={(e) => { setStatusFilter(e.target.value ? [e.target.value] : []); setPage(1); }}
           >
@@ -359,9 +362,9 @@ export default function ProjectsPage() {
           </select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">{t("projects.projectManager")}</Label>
+          <Label className="text-sm font-medium">{t("projects.projectManager")}</Label>
           <select
-            className="flex h-9 w-[160px] rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+            className="flex h-9 w-[160px] rounded-[var(--radius)] border border-input bg-transparent px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-0"
             value={projectManagerFilter}
             onChange={(e) => { setProjectManagerFilter(e.target.value); setPage(1); }}
           >
@@ -372,7 +375,7 @@ export default function ProjectsPage() {
           </select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">{t("projects.startDate")}</Label>
+          <Label className="text-sm font-medium">{t("projects.startDate")}</Label>
           <Input
             type="date"
             className="h-9 w-[140px]"
@@ -381,7 +384,7 @@ export default function ProjectsPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">{t("projects.endDate")}</Label>
+          <Label className="text-sm font-medium">{t("projects.endDate")}</Label>
           <Input
             type="date"
             className="h-9 w-[140px]"
@@ -395,16 +398,15 @@ export default function ProjectsPage() {
       </div>
 
       {loading && projects.length === 0 ? (
-        <div className="flex items-center justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
+        <CardListSkeleton count={6} />
       ) : viewMode === "table" ? (
         <>
           {projects.length === 0 ? (
-            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
-              <h3 className="mt-4 text-lg font-semibold">{t("projects.noProjectsFound")}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t("projects.adjustFilters")}</p>
-            </div>
+            <EmptyState
+              icon={Folder}
+              title={t("projects.noProjectsFound")}
+              description={t("projects.adjustFilters")}
+            />
           ) : (
             <ProjectsTableView
               projects={projects}
@@ -412,38 +414,49 @@ export default function ProjectsPage() {
               page={page}
               limit={limit}
               onPageChange={setPage}
+              onProjectUpdated={fetchProjects}
             />
           )}
         </>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => (
-              <Link
-                key={p.id}
-                to={`/dashboard/projects/${p.id}`}
-                className="rounded-xl border bg-card p-6 hover:bg-accent/50 transition-colors block"
-              >
-                <h3 className="font-semibold">{p.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{p.description || "—"}</p>
-                <div className="flex gap-2 mt-3">
-                  {p.status && (
-                    <Badge variant="outline" className="text-xs">
-                      {p.status.replace("_", " ")}
-                    </Badge>
-                  )}
+            {projects.map((p) => {
+              const categoryName = p.projectType?.name ?? p.type ?? (p.projectTypeId && projectTypes.find((t) => t.id === p.projectTypeId)?.name);
+              return (
+                <Link
+                  key={p.id}
+                  to={`/dashboard/projects/${p.id}`}
+                  className="rounded-xl border border-border bg-card p-6 shadow-sm hover:shadow-md hover:border-primary/50 transition-all duration-200 block h-full"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    {categoryName && (
+                      <Badge variant="outline" className={cn("text-xs shrink-0", getProjectTypeColor(categoryName))}>
+                        {String(categoryName)}
+                      </Badge>
+                    )}
+                    {p.status && (
+                      <Badge variant="outline" className={cn("text-xs shrink-0 capitalize", PROJECT_STATUS_COLORS[p.status] || "bg-muted text-muted-foreground border-border")}>
+                        {p.status.replace("_", " ")}
+                      </Badge>
+                    )}
+                    {!categoryName && !p.status && <span />}
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">{p.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{p.description || "—"}</p>
                   {p._count?.tasks != null && (
-                    <span className="text-xs text-muted-foreground">{p._count.tasks} {t("projects.tasksCount")}</span>
+                    <p className="text-xs text-muted-foreground mt-3">{p._count.tasks} {t("projects.tasksCount")}</p>
                   )}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
           {projects.length === 0 && (
-            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
-              <h3 className="mt-4 text-lg font-semibold">{t("projects.noProjects")}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t("projects.adjustFilters")}</p>
-            </div>
+            <EmptyState
+              icon={Folder}
+              title={t("projects.noProjects")}
+              description={t("projects.adjustFilters")}
+            />
           )}
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-6">

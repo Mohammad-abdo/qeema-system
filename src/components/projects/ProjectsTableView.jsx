@@ -12,21 +12,30 @@ import {
 } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { EditProjectModal } from "./EditProjectModal";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+import { PROJECT_STATUS_COLORS, getProjectTypeColor } from "@/lib/statusColors";
 import { cn } from "@/lib/utils";
 
-const statusColors = {
-  active: "bg-green-500/10 text-green-600 border-green-500/20",
-  completed: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  on_hold: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-  planned: "bg-gray-500/10 text-gray-600 border-gray-500/20",
-  cancelled: "bg-red-500/10 text-red-600 border-red-500/20",
-};
-
-export function ProjectsTableView({ projects, total, page, limit, onPageChange }) {
+export function ProjectsTableView({ projects, total, page, limit, onPageChange, onProjectUpdated }) {
   const { t } = useTranslation();
   const [sortField, setSortField] = useState(null);
   const [sortDir, setSortDir] = useState("asc");
+  const [editingProject, setEditingProject] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleEditClick = (project) => {
+    setEditingProject(project);
+    setIsEditModalOpen(true);
+  };
 
   const handleSort = (field) => {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -90,6 +99,7 @@ export function ProjectsTableView({ projects, total, page, limit, onPageChange }
               <SortHeader field="endDate" label={t("projects.endDate")} />
               <TableHead>{t("projects.projectManager")}</TableHead>
               <TableHead>{t("projects.tasksCount")}</TableHead>
+              <TableHead className="w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -101,12 +111,12 @@ export function ProjectsTableView({ projects, total, page, limit, onPageChange }
                   </Link>
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className="text-xs capitalize">
+                  <Badge variant="outline" className={cn("text-xs capitalize", getProjectTypeColor(project.type || project.projectType?.name))}>
                     {project.type || project.projectType?.name || "—"}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge className={cn("text-xs", statusColors[project.status] || "bg-gray-500/10 text-gray-600")}>
+                  <Badge className={cn("text-xs", PROJECT_STATUS_COLORS[project.status] || "bg-muted text-muted-foreground border-border")}>
                     {(project.status || "—").replace("_", " ")}
                   </Badge>
                 </TableCell>
@@ -121,6 +131,28 @@ export function ProjectsTableView({ projects, total, page, limit, onPageChange }
                 </TableCell>
                 <TableCell>
                   <span className="text-sm">{project._count?.tasks ?? 0}</span>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleEditClick(project)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Project
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -150,6 +182,15 @@ export function ProjectsTableView({ projects, total, page, limit, onPageChange }
             {t("common.next")}
           </Button>
         </div>
+      )}
+
+      {editingProject && (
+        <EditProjectModal
+          project={editingProject}
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          onProjectUpdated={onProjectUpdated}
+        />
       )}
     </div>
   );

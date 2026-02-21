@@ -57,7 +57,7 @@ function PageFallback() {
 
 export default function App() {
   return (
-    <div className="h-screen bg-gray-50">
+    <div className="h-screen bg-background">
       <Suspense fallback={<PageFallback />}>
         <Routes>
         <Route path="/" element={<HomeRedirect />} />

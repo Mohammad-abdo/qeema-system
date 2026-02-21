@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/Table";
 import { Sheet, SheetTrigger, SheetContent, useSheet } from "@/components/ui/Sheet";
 import { Label } from "@/components/ui/Label";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 import { cn } from "@/lib/utils";
 
 function AddMemberFormInner({ teamId, availableUsers, onAdded }) {
@@ -168,11 +169,7 @@ export default function TeamDetailPage() {
   };
 
   if (loading && !team) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    );
+    return <ContentSkeleton className="space-y-6" />;
   }
 
   if (!team) {
@@ -207,7 +204,7 @@ export default function TeamDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">{team.name}</h2>
+            <h2 className="page-title">{team.name}</h2>
             <p className="text-muted-foreground">{team.description || t("teams.subtitle")}</p>
           </div>
         </div>

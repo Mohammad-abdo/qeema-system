@@ -9,7 +9,9 @@ import {
   AlertCircle,
   Calendar,
   Lock,
+  ListTodo,
   Target,
+  User,
 } from "lucide-react";
 import api from "@/services/api";
 import { error as notifyError } from "@/utils/notify";
@@ -20,23 +22,17 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Alert, AlertDescription } from "@/components/ui/Alert";
+import { StatCard } from "@/components/dashboard/StatCard";
 import { TasksViewSwitcher } from "@/components/tasks/TasksViewSwitcher";
 import { TasksTableView } from "@/components/tasks/TasksTableView";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
-
-const STATUS_COLORS = {
-  pending: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
-  in_progress: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  review: "bg-purple-500/10 text-purple-600 border-purple-500/20",
-  completed: "bg-green-500/10 text-green-600 border-green-500/20",
-  waiting: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-};
-const PRIORITY_COLORS = {
-  urgent: "bg-red-500/10 text-red-600 border-red-500/20",
-  high: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  normal: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  low: "bg-gray-500/10 text-gray-600 border-gray-500/20",
-};
+import {
+  PRIORITY_COLORS,
+  getTaskStatusDisplay,
+  getTaskStatusColor,
+  getAssigneeColor,
+} from "@/lib/statusColors";
 
 function Avatar({ name, className }) {
   const initials = (name || "??").substring(0, 2).toUpperCase();
@@ -63,6 +59,7 @@ export default function TasksPage() {
   const [users, setUsers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [taskStatuses, setTaskStatuses] = useState([]);
+  const [summaryStats, setSummaryStats] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [projectFilter, setProjectFilter] = useState(
@@ -86,13 +83,14 @@ export default function TasksPage() {
   const [viewMode, setViewMode] = useState(searchParams.get("view") === "table" ? "table" : "card");
   const [page, setPage] = useState(Math.max(1, parseInt(searchParams.get("page") || "1", 10)));
   const limit = 20;
+  const cardFilter = searchParams.get("filter") || null;
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     setError(null);
     const params = {
-      page,
-      limit,
+      page: cardFilter === "overdue" ? 1 : page,
+      limit: cardFilter === "overdue" ? 100 : limit,
       search: searchQuery || undefined,
       assigneeId: assigneeFilter !== "all" ? (assigneeFilter === "me" ? "me" : assigneeFilter) : undefined,
       dateFilterType: dateFilterType || "dueDate",
@@ -102,6 +100,11 @@ export default function TasksPage() {
     if (priorityFilter.length > 0) params.priority = priorityFilter;
     if (dateRange.start) params.startDate = dateRange.start.toISOString?.() ? dateRange.start.toISOString().split("T")[0] : dateRange.start;
     if (dateRange.end) params.endDate = dateRange.end.toISOString?.() ? dateRange.end.toISOString().split("T")[0] : dateRange.end;
+    if (cardFilter === "overdue") {
+      const today = new Date().toISOString().split("T")[0];
+      params.endDate = today;
+      params.dateFilterType = "dueDate";
+    }
 
     try {
       const res = await api.get("/api/v1/tasks", { params });
@@ -110,8 +113,16 @@ export default function TasksPage() {
       if (dependencyState === "blocked") {
         list = list.filter((t) => t.status === "waiting" || (t._count?.dependencies > 0));
       }
+      if (cardFilter === "overdue") {
+        const now = new Date();
+        list = list.filter(
+          (t) => t.dueDate && new Date(t.dueDate) < now && t.status !== "completed"
+        );
+        setTotal(list.length);
+      } else {
+        setTotal(data?.total ?? 0);
+      }
       setTasks(list);
-      setTotal(data?.total ?? 0);
     } catch (err) {
       const msg = err?.response?.data?.error || err.message;
       setError(msg);
@@ -121,11 +132,28 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, searchQuery, projectFilter, statusFilter, assigneeFilter, priorityFilter, dateRange, dateFilterType, dependencyState]);
+  }, [page, limit, searchQuery, projectFilter, statusFilter, assigneeFilter, priorityFilter, dateRange, dateFilterType, dependencyState, cardFilter]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
+
+  useEffect(() => {
+    setSearchQuery(searchParams.get("search") || "");
+    setProjectFilter(searchParams.get("project") ? searchParams.get("project").split(",").filter(Boolean) : []);
+    setStatusFilter(searchParams.get("status") ? searchParams.get("status").split(",").filter(Boolean) : []);
+    setAssigneeFilter(searchParams.get("assignee") || "all");
+    setPriorityFilter(searchParams.get("priority") ? searchParams.get("priority").split(",").filter(Boolean) : []);
+    setDependencyState(searchParams.get("dependencyState") || "all");
+    const start = searchParams.get("startDate");
+    const end = searchParams.get("endDate");
+    setDateRange({
+      start: start ? new Date(start) : undefined,
+      end: end ? new Date(end) : undefined,
+    });
+    setDateFilterType(searchParams.get("dateFilterType") || "dueDate");
+    setPage(Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1));
+  }, [searchParams]);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
@@ -141,6 +169,8 @@ export default function TasksPage() {
     else params.delete("priority");
     if (dependencyState !== "all") params.set("dependencyState", dependencyState);
     else params.delete("dependencyState");
+    if (cardFilter) params.set("filter", cardFilter);
+    else params.delete("filter");
     if (dateRange.start) params.set("startDate", (dateRange.start instanceof Date ? dateRange.start : new Date(dateRange.start)).toISOString().split("T")[0]);
     else params.delete("startDate");
     if (dateRange.end) params.set("endDate", (dateRange.end instanceof Date ? dateRange.end : new Date(dateRange.end)).toISOString().split("T")[0]);
@@ -166,6 +196,23 @@ export default function TasksPage() {
     });
   }, []);
 
+  useEffect(() => {
+    api
+      .get("/api/v1/dashboard/summary")
+      .then((res) => {
+        const data = res.data?.data ?? res.data ?? {};
+        setSummaryStats({
+          totalTasks: data.totalTasks ?? 0,
+          myTasks: data.myTasks ?? 0,
+          todaysTasks: data.todaysTasks ?? 0,
+          blockedTasks: data.blockedTasks ?? 0,
+          overdueTasks: data.overdueTasks ?? 0,
+          completedToday: data.completedToday ?? 0,
+        });
+      })
+      .catch(() => setSummaryStats(null));
+  }, []);
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setProjectFilter([]);
@@ -179,6 +226,14 @@ export default function TasksPage() {
   };
 
   const totalPages = Math.ceil(total / limit) || 1;
+  const todayStr = new Date().toISOString().split("T")[0];
+  const tasksBase = "/dashboard/tasks";
+  const isCardActive = (key) =>
+    (key === "all" && !cardFilter && assigneeFilter === "all" && dependencyState === "all") ||
+    (key === "mine" && assigneeFilter === "me") ||
+    (key === "blocked" && dependencyState === "blocked") ||
+    (key === "overdue" && cardFilter === "overdue") ||
+    (key === "completed_today" && cardFilter === "completed_today");
   const isBlocked = (task) =>
     task.status === "waiting" || (task._count?.dependencies > 0);
   const isOverdue = (task) =>
@@ -188,13 +243,66 @@ export default function TasksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("tasks.title")}</h1>
+          <h1 className="page-title">{t("tasks.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("tasks.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <TasksViewSwitcher viewMode={viewMode} onViewChange={setViewMode} />
         </div>
       </div>
+
+      {/* Summary stat cards – click to filter task list */}
+      {summaryStats && (
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          <StatCard
+            title={t("tasks.totalTasks")}
+            value={summaryStats.totalTasks}
+            icon="ListTodo"
+            href={tasksBase}
+            variant="info"
+            isActive={isCardActive("all")}
+          />
+          <StatCard
+            title={t("tasks.myTasks")}
+            value={summaryStats.myTasks}
+            icon="User"
+            href={`${tasksBase}?assignee=me`}
+            variant="default"
+            isActive={isCardActive("mine")}
+          />
+          <StatCard
+            title={t("tasks.todaysFocus")}
+            value={summaryStats.todaysTasks}
+            icon="Calendar"
+            href="/dashboard/focus"
+            variant="info"
+          />
+          <StatCard
+            title={t("tasks.blocked")}
+            value={summaryStats.blockedTasks}
+            icon="AlertTriangle"
+            href={`${tasksBase}?dependencyState=blocked`}
+            variant="danger"
+            isActive={isCardActive("blocked")}
+          />
+          <StatCard
+            title={t("tasks.overdue")}
+            value={summaryStats.overdueTasks}
+            icon="Clock"
+            href={`${tasksBase}?filter=overdue`}
+            variant="danger"
+            isActive={isCardActive("overdue")}
+          />
+          <StatCard
+            title={t("tasks.completedToday")}
+            value={summaryStats.completedToday}
+            icon="CheckCircle2"
+            href={`${tasksBase}?filter=completed_today&status=completed&startDate=${todayStr}&endDate=${todayStr}&dateFilterType=createdDate`}
+            variant="success"
+            isActive={isCardActive("completed_today")}
+          />
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -225,7 +333,7 @@ export default function TasksPage() {
       </div>
 
       {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-card p-4">
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="space-y-2">
           <Label className="text-xs">{t("tasks.project")}</Label>
           <select
@@ -283,7 +391,7 @@ export default function TasksPage() {
               setPage(1);
             }}
           >
-            <option value="all">{t("tasks.everyone")}</option>
+            <option value="all">{t("tasks.allUsers")}</option>
             <option value="me">{t("tasks.myTasks")}</option>
             {users.map((u) => (
               <option key={u.id} value={String(u.id)}>
@@ -319,7 +427,7 @@ export default function TasksPage() {
               setPage(1);
             }}
           >
-            <option value="all">{t("tasks.all")}</option>
+            <option value="all">{t("tasks.allTasks")}</option>
             <option value="blocked">{t("tasks.blocked")}</option>
             <option value="free">{t("tasks.free")}</option>
           </select>
@@ -382,10 +490,11 @@ export default function TasksPage() {
         }
       >
         {tasks.length === 0 && !loading && (
-          <div className="flex min-h-[300px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center">
-            <h3 className="mt-4 text-lg font-semibold">{t("tasks.noTasks")}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{t("tasks.adjustFilters")}</p>
-          </div>
+          <EmptyState
+            icon={ListTodo}
+            title={t("tasks.noTasks")}
+            description={t("tasks.adjustFilters")}
+          />
         )}
 
         {tasks.length > 0 && viewMode === "table" && (
@@ -409,38 +518,73 @@ export default function TasksPage() {
                   ? `/dashboard/projects/${projectId}/tasks/${task.id}`
                   : `/dashboard/tasks/${task.id}`;
 
+                const assigneeLabel =
+                  task.assignees?.length > 0
+                    ? (task.assignees[0].username || task.assignees[0].email || "??").substring(0, 2).toUpperCase()
+                    : null;
+
                 return (
                   <Link key={task.id} to={taskLink}>
                     <Card
                       className={cn(
-                        "transition-shadow hover:shadow-md h-full cursor-pointer",
+                        "transition-shadow hover:shadow-md h-full cursor-pointer relative",
                         blocked && "border-orange-500/50",
                         overdue && "border-red-500/50"
                       )}
                     >
-                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                      {overdue && (
+                        <div
+                          className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground"
+                          title={t("tasks.overdue")}
+                        >
+                          <AlertCircle className="h-3.5 w-3.5" />
+                        </div>
+                      )}
+                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pr-10">
                         <div className="space-y-1 flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-base font-semibold leading-none line-clamp-2">
-                              {task.title}
-                            </CardTitle>
-                            {blocked && (
-                              <Lock className="h-4 w-4 text-orange-500 shrink-0" title="Blocked" />
-                            )}
-                          </div>
-                          <Badge variant="outline" className="text-xs">
+                          <CardTitle className="text-base font-semibold leading-none line-clamp-2">
+                            {task.title}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground">
                             {task.project?.name || "Unknown Project"}
-                          </Badge>
+                          </p>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <Badge
+                            variant="outline"
+                            className={cn("text-xs", getTaskStatusColor(task))}
+                          >
+                            {getTaskStatusDisplay(task).replace(/_/g, " ")}
+                          </Badge>
+                          {blocked && (
+                            <Lock className="h-4 w-4 text-chart-4 shrink-0" title={t("tasks.blocked")} />
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
                             className={cn(
                               "text-xs",
-                              STATUS_COLORS[task.status] || "bg-gray-500/10 text-gray-600 border-gray-500/20"
+                              PRIORITY_COLORS[task.priority] || "bg-muted text-muted-foreground border-border"
                             )}
                           >
-                            {(task.taskStatus?.name || task.status || "").replace("_", " ")}
+                            {task.priority || "normal"}
                           </Badge>
+                          {task.assignees?.length > 0 ? (
+                            task.assignees.slice(0, 2).map((a) => (
+                              <Badge
+                                key={a.id}
+                                variant="outline"
+                                className={cn("text-xs", getAssigneeColor(a))}
+                              >
+                                {a.username || a.email || "?"}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-xs text-muted-foreground">{t("tasks.unassigned")}</span>
+                          )}
                           {overdue && (
                             <Badge variant="destructive" className="text-xs">
                               <AlertCircle className="h-3 w-3 mr-1" />
@@ -448,42 +592,33 @@ export default function TasksPage() {
                             </Badge>
                           )}
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            className={cn(
-                              "text-xs",
-                              PRIORITY_COLORS[task.priority] || "bg-gray-500/10 text-gray-500 border-gray-500/20"
-                            )}
-                          >
-                            {task.priority || "normal"}
-                          </Badge>
-                        </div>
-                        {task.assignees?.length > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <div className="flex -space-x-2">
-                              {task.assignees.slice(0, 3).map((a) => (
-                                <Avatar key={a.id} name={a.username} />
-                              ))}
+                        <div className="space-y-1 text-xs text-muted-foreground">
+                          {task.creator && (
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3 shrink-0" />
+                              <span>{t("tasks.createdBy", "Created by")} {task.creator.username ?? task.creator.email ?? "—"}</span>
                             </div>
-                            {task.assignees.length > 3 && (
-                              <span className="text-xs text-muted-foreground">
-                                +{task.assignees.length - 3}
+                          )}
+                          {task.createdAt && (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3 shrink-0" />
+                              <span>{t("tasks.created", "Created")} {format(new Date(task.createdAt), "MMM d, yyyy")}</span>
+                            </div>
+                          )}
+                          {task.dueDate ? (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3 shrink-0" />
+                              <span className={cn(overdue && "text-destructive font-medium")}>
+                                {t("tasks.due")}: {format(new Date(task.dueDate), "MMM d, yyyy")}
                               </span>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">{t("tasks.unassigned")}</p>
-                        )}
-                        {task.dueDate && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="h-3 w-3" />
-                            <span className={cn(overdue && "text-red-600 font-medium")}>
-                              Due: {format(new Date(task.dueDate), "MMM d, yyyy")}
-                            </span>
-                          </div>
-                        )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3 shrink-0 opacity-50" />
+                              <span>{t("tasks.noDueDate", "No due date")}</span>
+                            </div>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   </Link>

@@ -14,19 +14,19 @@ export function FocusSummary({ tasks = [] }) {
         </h3>
 
         <div className="space-y-4">
-          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="p-3 bg-chart-1/10 dark:bg-chart-1/20 rounded-lg">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Selected Tasks</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totalTasks}</p>
+            <p className="text-2xl font-bold text-chart-1">{totalTasks}</p>
           </div>
 
-          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+          <div className="p-3 bg-chart-2/10 dark:bg-chart-2/20 rounded-lg">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Estimated Time</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{estimatedTime}h</p>
+            <p className="text-2xl font-bold text-chart-2">{estimatedTime}h</p>
           </div>
 
-          <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+          <div className="p-3 bg-chart-1/10 dark:bg-chart-1/20 rounded-lg">
             <p className="text-xs text-muted-foreground uppercase font-semibold">Projects Involved</p>
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{uniqueProjects}</p>
+            <p className="text-2xl font-bold text-chart-1">{uniqueProjects}</p>
           </div>
         </div>
       </div>

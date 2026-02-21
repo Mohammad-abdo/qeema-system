@@ -9,7 +9,7 @@ export function Table({ className, ...props }) {
 }
 
 export function TableHeader({ className, ...props }) {
-  return <thead className={cn("[&_tr]:border-b", className)} {...props} />;
+  return <thead className={cn("sticky top-0 z-10 [&_tr]:border-b border-border bg-muted/40", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }) {
@@ -20,7 +20,7 @@ export function TableRow({ className, ...props }) {
   return (
     <tr
       className={cn(
-        "border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b border-border transition-colors duration-[var(--duration-ui)] hover:bg-muted/50 data-[state=selected]:bg-muted",
         className
       )}
       {...props}

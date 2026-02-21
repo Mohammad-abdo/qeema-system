@@ -14,13 +14,13 @@ export default function DashboardLayout() {
   const { t } = useTranslation();
   return (
     <div className="flex h-screen w-full flex-col md:flex-row">
-      {/* Sidebar: glass style + subtle shadow */}
-      <aside className="hidden md:block md:w-64 lg:w-72 shrink-0 flex-col border-r border-white/20 dark:border-white/10 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl shadow-[4px_0_24px_-4px_rgba(0,0,0,0.08)] dark:shadow-[4px_0_24px_-4px_rgba(0,0,0,0.35)]">
+      {/* Sidebar: subtle border separation, calm background */}
+      <aside className="hidden md:flex md:w-64 lg:w-72 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="flex h-full max-h-screen flex-col">
           <DashboardBranding />
           <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-3">
             <nav className="space-y-1">
-              <div className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="mb-2 px-3 text-xs font-bold uppercase tracking-wider text-sidebar-foreground/70">
                 {t("nav.menu")}
               </div>
               <NavLinks />
@@ -31,8 +31,8 @@ export default function DashboardLayout() {
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Header */}
-        <header className="flex h-14 items-center gap-4 border-b border-white/20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md px-6 shadow-sm">
+        {/* Header: Sticky + Glassmorphism */}
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/95 px-4 md:px-6 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-colors duration-[var(--duration-ui)]">
           <Sheet>
             <SheetTrigger>
               <Button className="md:hidden" size="icon" variant="outline">
@@ -56,7 +56,7 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-app-bg">
           <Outlet />
         </main>
       </div>

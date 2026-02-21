@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Badge } from "@/components/ui/Badge";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -161,18 +162,14 @@ export default function SettingsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <ContentSkeleton className="space-y-6" />;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight font-alexandria">{t("settings.title")}</h1>
+          <h1 className="page-title font-alexandria">{t("settings.title")}</h1>
           <p className="text-muted-foreground mt-1 font-alexandria">{t("settings.subtitle")}</p>
         </div>
         {isAdmin && (
@@ -203,7 +200,7 @@ export default function SettingsPage() {
 
         <TabsContent value="profile" className="space-y-4">
           {isAdmin && (
-            <Card className="p-4 rounded-xl border-0 bg-card/80 backdrop-blur-sm shadow-sm">
+            <Card className="rounded-xl border-0 bg-card/80 backdrop-blur-sm shadow-sm">
               <h3 className="text-lg font-semibold flex items-center gap-2 mb-1">
                 <Shield className="h-5 w-5 text-primary" />
                 {t("settings.adminProfile")}
@@ -252,7 +249,7 @@ export default function SettingsPage() {
               </div>
             </Card>
           )}
-          <Card className="p-4 border rounded-lg bg-card">
+          <Card className="border rounded-lg bg-card">
             <h3 className="text-lg font-medium mb-4">{t("settings.profileInfo")}</h3>
             <form onSubmit={handleProfileSubmit} className="space-y-4 max-w-md">
               <div className="space-y-2">
@@ -282,7 +279,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
-          <Card className="p-4 border rounded-lg bg-card">
+          <Card className="border rounded-lg bg-card">
             <h3 className="text-lg font-medium mb-4">{t("settings.changePassword")}</h3>
             <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
               <div className="space-y-2">
@@ -314,7 +311,7 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="preferences" className="space-y-4">
-          <Card className="p-4 border rounded-lg bg-card">
+          <Card className="border rounded-lg bg-card">
             <h3 className="text-lg font-medium mb-2">{t("settings.preferences")}</h3>
             <p className="text-sm text-muted-foreground">{t("settings.preferencesText")}</p>
           </Card>
@@ -322,7 +319,7 @@ export default function SettingsPage() {
 
         {isAdmin && (
           <TabsContent value="branding" className="space-y-4">
-            <Card className="p-4 border rounded-lg bg-card">
+            <Card className="border rounded-lg bg-card">
               <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
                 <Image className="h-5 w-5" />
                 {t("settings.brandingTitle")}

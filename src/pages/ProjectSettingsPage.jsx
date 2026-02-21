@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Settings } from "lucide-react";
 import api from "@/services/api";
 import { error as notifyError } from "@/utils/notify";
+import { ContentSkeleton } from "@/components/ui/ContentSkeleton";
 
 export default function ProjectSettingsPage() {
   const { id } = useParams();
@@ -24,11 +25,7 @@ export default function ProjectSettingsPage() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12 text-muted-foreground">
-        {t("common.loading")}
-      </div>
-    );
+    return <ContentSkeleton className="space-y-6" />;
   }
 
   if (!project) {
@@ -55,7 +52,7 @@ export default function ProjectSettingsPage() {
               {t("projects.backToProject")}
             </Link>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h2 className="page-title flex items-center gap-2">
             <Settings className="h-8 w-8" />
             {t("projects.projectSettings")}
           </h2>

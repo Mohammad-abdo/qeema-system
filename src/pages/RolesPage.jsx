@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Shield, Plus, Pencil, Trash2 } from "lucide-react";
 import api from "@/services/api";
@@ -15,27 +15,101 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
 import { Sheet, SheetTrigger, SheetContent, useSheet } from "@/components/ui/Sheet";
 import { Label } from "@/components/ui/Label";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
 
-function AddRoleForm({ onAdded }) {
+function CreateRoleDialog({ onAdded }) {
   const { t } = useTranslation();
-  const { setOpen } = useSheet();
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [allPermissions, setAllPermissions] = useState([]);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [loadingPerms, setLoadingPerms] = useState(false);
+  const [activeTab, setActiveTab] = useState("");
+
+  const { modules, byModule } = useMemo(() => {
+    const map = {};
+    for (const p of allPermissions) {
+      if (!map[p.module]) map[p.module] = [];
+      map[p.module].push(p);
+    }
+    const mods = Object.keys(map).sort();
+    return { modules: mods, byModule: map };
+  }, [allPermissions]);
+
+  useEffect(() => {
+    if (activeTab === "" && modules.length > 0) setActiveTab(modules[0]);
+  }, [modules, activeTab]);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoadingPerms(true);
+    api
+      .get("/api/v1/rbac/permissions/list")
+      .then((res) => {
+        const perms = res.data?.permissions ?? [];
+        setAllPermissions(perms);
+        setSelectedIds(new Set());
+      })
+      .catch(() => notifyError("Failed to load permissions"))
+      .finally(() => setLoadingPerms(false));
+  }, [open]);
+
+  const togglePermission = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllInModule = (module) => {
+    const perms = byModule[module] ?? [];
+    const ids = perms.map((p) => p.id);
+    const allSelected = ids.every((id) => selectedIds.has(id));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelected) ids.forEach((id) => next.delete(id));
+      else ids.forEach((id) => next.add(id));
+      return next;
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) return;
     setLoading(true);
     try {
-      const res = await api.post("/api/v1/rbac/roles", { name: name.trim(), description: description.trim() || null });
+      const roleRes = await api.post("/api/v1/rbac/roles", {
+        name: name.trim(),
+        description: description.trim() || null,
+      });
+      const roleId = roleRes.data?.id;
+      if (roleId != null) {
+        await api.put(`/api/v1/rbac/roles/${roleId}/permissions`, {
+          permissionIds: Array.from(selectedIds),
+        });
+      }
       notifySuccess(t("roles.roleCreated"));
       setOpen(false);
       setName("");
       setDescription("");
+      setSelectedIds(new Set());
       onAdded?.();
     } catch (err) {
       notifyError(err?.response?.data?.error || "Failed to create role");
@@ -45,39 +119,124 @@ function AddRoleForm({ onAdded }) {
   };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold">{t("roles.addRole")}</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="role-name">{t("roles.roleName")}</Label>
-          <Input
-            id="role-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={t("roles.roleName")}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="role-desc">{t("roles.roleDescription")}</Label>
-          <Input
-            id="role-desc"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t("roles.roleDescription")}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button type="submit" disabled={loading || !name.trim()}>
-            {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
-            {t("roles.save")}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-            {t("roles.cancel")}
-          </Button>
-        </div>
-      </form>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="h-4 w-4 me-2" />
+          {t("roles.addRole")}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="text-lg font-semibold tracking-tight">
+            {t("roles.createNewRole")}
+          </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            {t("roles.createNewRoleSubtitle")}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 overflow-hidden flex gap-4 px-6">
+          <div className="flex-shrink-0 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-role-name" className="text-sm font-medium">
+                {t("roles.roleNameRequired")}
+              </Label>
+              <Input
+                id="create-role-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t("roles.roleNamePlaceholder")}
+                required
+                className="rounded-[10px]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-role-desc" className="text-sm font-medium">
+                {t("roles.roleDescription")}
+              </Label>
+              <Textarea
+                id="create-role-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t("roles.descriptionPlaceholder")}
+                className="min-h-[80px] rounded-[10px] resize-y"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col min-h-0 flex-1 overflow-hidden min-h-[280px]">
+            <Label className="text-sm font-medium mb-2 flex-shrink-0">{t("roles.permissions")}</Label>
+            {loadingPerms ? (
+              <div className="flex items-center gap-2 py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{t("common.loading") || "Loading…"}</span>
+              </div>
+            ) : modules.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">{t("roles.noPermissions")}</p>
+            ) : (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col min-h-0 flex-1 overflow-hidden">
+                <TabsList className="flex flex-wrap gap-1 w-full justify-start rounded-lg bg-muted p-1 flex-shrink-0 mb-3">
+                  {modules.map((mod) => (
+                    <TabsTrigger key={mod} value={mod} className="rounded-[var(--radius)] text-sm">
+                      {mod}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                <div className="flex-1 min-h-[220px] overflow-y-auto pt-1 border-t border-border">
+                  {modules.map((mod) => (
+                    <TabsContent key={mod} value={mod} className="mt-0 focus-visible:outline-none h-full">
+                      <Card className="rounded-[10px] border border-border overflow-hidden h-full flex flex-col">
+                        <div className="flex items-center justify-between gap-2 p-3 border-b border-border flex-shrink-0">
+                          <CardTitle className="text-sm font-semibold">
+                            {t("roles.modulePermissions", { module: mod })}
+                          </CardTitle>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="rounded-[10px]"
+                            onClick={() => selectAllInModule(mod)}
+                          >
+                            {t("roles.selectAll")}
+                          </Button>
+                        </div>
+                        <CardContent className="p-3 space-y-2 overflow-y-auto max-h-[360px] min-h-0">
+                          {(byModule[mod] ?? []).map((p) => (
+                            <label
+                              key={p.id}
+                              className="flex items-center gap-2 cursor-pointer text-sm hover:bg-muted/50 rounded-md px-2 py-1.5 -mx-2 -my-0.5"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(p.id)}
+                                onChange={() => togglePermission(p.id)}
+                                className="rounded border-input focus-visible:ring-2 focus-visible:ring-ring"
+                              />
+                              <span className="font-mono text-xs text-muted-foreground">{p.key}</span>
+                              <span className="text-muted-foreground">({p.name})</span>
+                            </label>
+                          ))}
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  ))}
+                </div>
+              </Tabs>
+            )}
+          </div>
+
+          <DialogFooter className="flex-shrink-0 gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {t("roles.cancel")}
+            </Button>
+            <Button type="submit" disabled={loading || !name.trim()}>
+              {loading && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {t("roles.save")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -261,7 +420,7 @@ export default function RolesPage() {
       <div className="flex items-center gap-2">
         <Shield className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("roles.title")}</h1>
+          <h1 className="page-title">{t("roles.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("roles.subtitle")}</p>
         </div>
       </div>
@@ -272,17 +431,7 @@ export default function RolesPage() {
             <CardTitle className="text-base">{t("roles.allRoles")}</CardTitle>
             <p className="text-sm text-muted-foreground">{t("roles.permissionsForRole")}</p>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button size="sm">
-                <Plus className="h-4 w-4 me-2" />
-                {t("roles.addRole")}
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="w-full max-w-md">
-              <AddRoleForm onAdded={fetchRoles} />
-            </SheetContent>
-          </Sheet>
+          <CreateRoleDialog onAdded={fetchRoles} />
         </CardHeader>
         <CardContent>
           {loading && roles.length === 0 ? (

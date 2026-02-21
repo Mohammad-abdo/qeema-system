@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Sheet, SheetTrigger, SheetContent, useSheet } from "@/components/ui/Sheet";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 
 function Avatar({ name, className }) {
@@ -276,7 +277,7 @@ export default function UsersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("users.title")}</h1>
+          <h1 className="page-title">{t("users.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("users.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -377,7 +378,7 @@ export default function UsersPage() {
         )}
       </div>
 
-      <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-card p-4">
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-6">
         <div className="space-y-2">
           <Label className="text-xs">{t("users.role")}</Label>
           <select
@@ -501,9 +502,11 @@ export default function UsersPage() {
           </CardContent>
         )}
         {!loading && users.length === 0 && (
-          <div className="p-8 text-center text-muted-foreground">
-            <p>{t("users.noUsers")}</p>
-          </div>
+          <EmptyState
+            icon={UsersIcon}
+            title={t("users.noUsers")}
+            description={t("users.noUsersHint", "Create users or adjust filters.")}
+          />
         )}
       </Card>
     </div>

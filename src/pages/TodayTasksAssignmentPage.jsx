@@ -144,7 +144,7 @@ export default function TodayTasksAssignmentPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("tasks.taskAssignment")}</h1>
+          <h1 className="page-title">{t("tasks.taskAssignment")}</h1>
           <p className="text-muted-foreground mt-1">{t("tasks.taskAssignmentSubtitle")}</p>
         </div>
         <Card className="p-8 text-center">
@@ -158,7 +158,7 @@ export default function TodayTasksAssignmentPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("tasks.taskAssignment")}</h1>
+          <h1 className="page-title">{t("tasks.taskAssignment")}</h1>
           <p className="text-muted-foreground mt-1">
             {t("todayTasks.manageDaily", "Manage daily tasks for all users")}
           </p>

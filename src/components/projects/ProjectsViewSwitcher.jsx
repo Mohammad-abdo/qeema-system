@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export function ProjectsViewSwitcher({ viewMode, onViewChange }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-1 border rounded-lg p-1">
+    <div className="flex items-center gap-1 border border-border rounded-[var(--radius)] p-1">
       <Button
         variant={viewMode === "card" ? "default" : "ghost"}
         size="sm"

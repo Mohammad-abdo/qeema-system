@@ -1,6 +1,5 @@
 /**
- * Pleasant notification sound using Web Audio API (no external file).
- * Two-tone chime for reminders; softer tone for notification panel.
+ * Notification and reminder sounds. Notification uses custom file from public/sounds/ if present.
  */
 
 let audioContext = null;
@@ -42,13 +41,26 @@ export function playReminderSound() {
 }
 
 /**
- * Softer notification sound (e.g. when opening panel with unread).
+ * Notification: plays public/sounds/notification.mp3 if present, else two-tone chime.
+ * Distinct two-tone chime (D5 + G5) so it’s different from the reminder sound.
  */
-export function playNotificationSound() {
+/** Path to custom notification sound (place file in public/sounds/). Use .mp3 or .wav. */
+export const NOTIFICATION_SOUND_PATH = "/sounds/notification.mp3";
+
+function playNotificationSoundFallback() {
   const ctx = getAudioContext();
   if (!ctx) return;
   if (ctx.state === "suspended") ctx.resume();
   const now = ctx.currentTime;
-  playTone(440, now, 0.15, 0.08);
-  playTone(554.37, now + 0.12, 0.2, 0.06);   // C#5
+  playTone(587.33, now, 0.18, 0.08);       // D5
+  playTone(783.99, now + 0.16, 0.22, 0.06); // G5
+}
+
+export function playNotificationSound() {
+  if (typeof window === "undefined") return;
+  const audio = new window.Audio(NOTIFICATION_SOUND_PATH);
+  audio.volume = 0.6;
+  const onError = () => playNotificationSoundFallback();
+  audio.addEventListener("error", onError);
+  audio.play().catch(onError);
 }

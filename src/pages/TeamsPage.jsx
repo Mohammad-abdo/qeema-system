@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { cn } from "@/lib/utils";
 
 function TeamCard({ team, onDelete }) {
@@ -263,7 +264,7 @@ export default function TeamsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("teams.title")}</h1>
+          <h1 className="page-title">{t("teams.title")}</h1>
           <p className="text-muted-foreground mt-1">{t("teams.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -375,7 +376,7 @@ export default function TeamsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-card p-4">
+      <div className="flex flex-wrap items-end gap-4 rounded-xl border bg-card p-6">
         <div className="space-y-2">
           <Label className="text-xs">{t("common.status")}</Label>
           <select
@@ -462,10 +463,11 @@ export default function TeamsPage() {
         )}
 
         {!loading && filteredTeams.length === 0 && (
-          <div className="p-8 text-center text-muted-foreground">
-            <p>{t("teams.noTeams")}</p>
-            <p className="text-sm mt-1">{hasActiveFilters ? t("projects.adjustFilters") : t("teams.createOne")}</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title={t("teams.noTeams")}
+            description={hasActiveFilters ? t("projects.adjustFilters") : t("teams.createOne")}
+          />
         )}
       </Card>
     </div>

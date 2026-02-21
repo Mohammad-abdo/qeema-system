@@ -24,9 +24,9 @@ function NavItem({ to, nameKey, icon: Icon }) {
       to={to}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          "text-muted-foreground hover:bg-white/60 hover:text-foreground dark:hover:bg-white/10",
-          isActive && "bg-primary/10 text-primary dark:bg-primary/20"
+          "flex items-center gap-3 rounded-md border-l-2 border-transparent px-3 py-2 text-sm font-medium transition-all duration-[var(--duration-ui)] ease-in-out",
+          "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          isActive && "border-sidebar-primary bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
         )
       }
     >
@@ -54,9 +54,9 @@ function NavGroup({ labelKey, icon: Icon, children, defaultOpen }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-          "text-muted-foreground hover:bg-white/60 hover:text-foreground dark:hover:bg-white/10",
-          (open || hasActiveChild) && "text-foreground"
+          "flex w-full items-center justify-between gap-2 rounded-[var(--radius)] px-3 py-2 text-sm font-medium transition-colors duration-[var(--duration-ui)] ease-in-out",
+          "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+          (open || hasActiveChild) && "text-sidebar-foreground"
         )}
       >
         <span className="flex items-center gap-3">
@@ -66,7 +66,7 @@ function NavGroup({ labelKey, icon: Icon, children, defaultOpen }) {
         <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="ml-4 space-y-0.5 border-l border-border/50 pl-3">
+        <div className="ml-4 space-y-0.5 border-l border-sidebar-border pl-3">
           {children}
         </div>
       )}
